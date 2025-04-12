@@ -17,7 +17,7 @@ target_column = 'label'  # Replace with the actual name of your target column
 proportions = df[target_column].value_counts(normalize=True)
 
 # Calculate the number of samples for each class
-a = [i for i in range(1000, 10000, 500)]
+a = [i for i in range(1000, 82000, 5000)]
 for i in a:
   num_samples = i
   sample_counts = (proportions * num_samples).round().astype(int)
