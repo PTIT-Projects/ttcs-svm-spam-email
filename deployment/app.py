@@ -15,7 +15,7 @@ from sklearn.feature_extraction.text import HashingVectorizer
 @st.cache_resource
 def download_nltk_resources():
     nltk.download('stopwords')
-    nltk.download('punkt')
+    nltk.download('punkt_tab')
     
 download_nltk_resources()
 
@@ -29,7 +29,7 @@ def load_model():
             vectorizer = pickle.load(vectorizer_file)
         return model, vectorizer
     except FileNotFoundError:
-        st.error("Model or vectorizer files not found! Please ensure the pickle files are in the correct location.")
+        st.error("Không tìm thấy file model/vectorizer")
         return None, None
 
 model, vectorizer = load_model()
@@ -88,37 +88,28 @@ def preprocess_text(text):
     return ' '.join(tokens)
 
 # Streamlit UI
-st.title("Email Spam Detector")
-st.write("This application uses a Support Vector Machine (SVM) model to predict whether an email is spam or not.")
+st.title("Demo phân loại email tiếng Anh spam ")
 
-user_input = st.text_area("Enter the email content:", height=200)
 
-if st.button("Check if Spam"):
+user_input = st.text_area("Nhập nội dung email:", height=200)
+
+if st.button("Kiểm tra"):
     if not user_input:
-        st.warning("Please enter some text to analyze.")
+        st.warning("Hãy nhập nội dung để phân tích")
     elif model is None or vectorizer is None:
-        st.error("Model or vectorizer not loaded correctly. Please check the console for errors.")
+        st.error("Model/vectorizer không load được")
     else:
-        with st.spinner("Analyzing text..."):
-            # Preprocess the text
+        with st.spinner("Đang phân tích..."):
             preprocessed_text = preprocess_text(user_input)
-            
-            # Vectorize the text
             if hasattr(vectorizer, 'transform'):
                 features = vectorizer.transform([preprocessed_text])
             else:
-                # If vectorizer is not found, fallback to a new HashingVectorizer
-                fallback_vectorizer = HashingVectorizer(n_features=1000)
-                features = fallback_vectorizer.transform([preprocessed_text])
-            
-            # Make prediction
+                st.error("Không tìm thấy vectorizer")
             prediction = model.predict(features)
-            
-            # Display result
             if prediction[0] == 1:
-                st.error("🚨 This message appears to be SPAM!")
+                st.error("🚨 Email có khả năng là SPAM")
             else:
-                st.success("✅ This message appears to be legitimate (NOT spam).")
+                st.success("✅Email có khả năng không phải là SPAM ")
             
-            st.write("### Preprocessed Text:")
+            st.write("### Văn bản sau khi được tiền xử lý:")
             st.write(preprocessed_text)
