@@ -1,51 +1,59 @@
-# SVM Email Spam Detector
+# Demo nhận diện email tiếng Anh spam sử dụng SVM
 
-A Streamlit web application that detects spam emails using a Support Vector Machine (SVM) model.
+Demo sử dụng thư viện Streamlit để xây giao diện web sử dụng model SVM để nhận diện
 
-## Features
+## Tính năng
 
-- Web interface for entering email content
-- Real-time spam detection using SVM
-- Text preprocessing including tokenization, stemming, and stopword removal
-- Docker containerization for easy deployment
+- Giao diện web để nhập nội dung email
+- Phát hiện email spam dựa trên mô hình sVM
+- Tiền xử lý văn bản bao gồm tokenize,stemming và loại bỏ từ dừng
+- Docker containerization
 
-## Prerequisites
+## Yêu cầu
 
-- Docker installed on your system
-- The trained model (`linear_svm.pkl`) and vectorizer (`hashing_vectorizer.pkl`) files
+- Tải sẵn docker
+- Có các file nhị phân model (`linear_svm.pkl`) và vectorizer  (`hashing_vectorizer.pkl`)
 
-## Getting Started
+## Bắt đầu
 
 ### Building the Docker Image
 
-1. Make sure the following files are in the same directory:
-   - `app.py` (Streamlit application)
+1. Đưa vào cùng đường dẫn:
+   - `app.py` (Streamlit )
    - `Dockerfile`
    - `requirements.txt`
-   - `linear_svm.pkl` (your trained SVM model)
-   - `hashing_vectorizer.pkl` (your trained vectorizer)
+   - `linear_svm.pkl` (SVM model)
+   - `hashing_vectorizer.pkl` (vectorizer)
 
-2. Build the Docker image:
+2. Build  Docker image:
    ```bash
    docker build -t spam-detector .
    ```
 
-3. Run the container:
+3. Chạy  container:
    ```bash
    docker run -p 8501:8501 spam-detector
    ```
 
-4. Access the application in your web browser at:
+4. Truy cập đường dẫn web:
    ```
    http://localhost:8501
    ```
 
-## Using the Application
+## Vấn đề gặp phải
+Dương tính giả (false positive) --> đánh giá sai nhiều email bình thường là spam
 
-1. Enter or paste email content into the text area
-2. Click "Check if Spam" button
-3. View the prediction result and preprocessed text
 
-## Model Training
 
-The SVM model used in this application was trained on a dataset of spam and non-spam emails. The training code is available in the `svm.py` and `svm.ipynb` files in this repository.
+https://www.theguardian.com/world/2025/apr/12/us-demands-control-from-ukraine-of-key-pipeline-carrying-russian-gas
+### Not spam
+#### Ex1
+The US has demanded control of a crucial pipeline in Ukraine used to send Russian gas to Europe, according to reports, in a move described as a colonial shakedown.
+
+US and Ukrainian officials met on Friday to discuss White House proposals for a minerals deal. Donald Trump wants Kyiv to hand over its natural resources as “payback” in return for weapons delivered by the previous Biden administration.
+
+Talks have become increasingly acrimonious, Reuters said. The latest US draft is more “maximalist” than the original version from February, which proposed giving Washington $500bn worth of rare metals, as well as oil and gas.
+
+Citing a source close to the talks, the news agency said the most recent document includes a demand that the US government’s International Development Finance Corporation take control of the natural gas pipeline.
+#### Ex2
+The report suggests that universities will need to look beyond their traditional international student recruitment markets, given that demand in India is slowing and higher education is improving in quality in east Asia. They may also need to consider offering more cost-effective options, the report notes.
