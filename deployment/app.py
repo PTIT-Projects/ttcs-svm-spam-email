@@ -9,7 +9,7 @@ from nltk.corpus import stopwords
 from nltk.stem.porter import PorterStemmer
 from nltk.tokenize import word_tokenize
 from bs4 import BeautifulSoup
-from sklearn.feature_extraction.text import HashingVectorizer
+from scipy.sparse import csr_matrix
 
 @st.cache_resource
 def download_nltk_resources():
@@ -18,61 +18,80 @@ def download_nltk_resources():
     
 download_nltk_resources()
 
-class LinearSVM:
-    def __init__(self, C=1.0, max_iter=1000, lr=0.001, tolerance=1e-5):
-        self.C = C
-        self.max_iter = max_iter
-        self.lr = lr
-        self.tolerance = tolerance
-        self.w = None
-        self.b = 0
+class SVM:
+    def __init__(self, lambda_param=1e-4, epoch=1000, batch_size=256, tol=1e-4, random_state=42):
+        self.lambda_param = lambda_param
+        self.epoch = epoch
+        self.batch_size = batch_size
+        self.tol = tol
+        self.random_state = random_state
+        self.is_trained = False
 
     def fit(self, X, y):
         if hasattr(X, "toarray"):
-            X = X.toarray()
-        y_binary = np.where(y <= 0, -1, 1)
+            X = csr_matrix(X)
+        
+        self.num_samples, self.num_features = X.shape
 
-        n_samples, n_features = X.shape
+        y_unique = np.unique(y)
+        if len(y_unique) != 2:
+            raise ValueError("Phân loại nhị phân cần 2 nhãn")
+        if set(y_unique) == {0, 1}:
+            y = np.where(y == 0, -1, 1)
+        
+        self.w = np.zeros(self.num_features, dtype=np.float32)
+        self.b = 0.0
 
-        self.w = np.zeros(n_features)
+        np.random.seed(self.random_state)
+        t = 0
+        previous_objective = float("inf")
 
-        alpha = np.zeros(n_samples)
-        K = np.dot(X, X.T) * np.outer(y_binary, y_binary)
-        for iteration in range(self.max_iter):
-            alpha_prev = alpha.copy()
+        for ep in range(1, self.epoch + 1):
+            indices = np.random.permutation(self.num_samples)
+            for start in range(0, self.num_samples, self.batch_size):
+                t += 1
+                end = start + self.batch_size
+                batch_idx = indices[start:end]
+                X_batch = X[batch_idx]
+                y_batch = y[batch_idx]
+                
+                eta = 1.0 / (self.lambda_param * t)
+                margins = y_batch * (X_batch.dot(self.w) + self.b)
+                mask = margins < 1
+                self.w *= (1 - eta * self.lambda_param)
+                if np.any(mask):
+                    X_violate = X_batch[mask]
+                    y_violate = y_batch[mask]
+                    self.w += (eta / self.batch_size) * np.dot(y_violate, X_violate.toarray() if hasattr(X_violate, "toarray") else X_violate)
+                    self.b += (eta / self.batch_size) * np.sum(y_violate)
+                norm_w = np.linalg.norm(self.w)
+                factor = min(1, (1.0 / np.sqrt(self.lambda_param)) / (norm_w))
+                self.w *= factor
 
-            margins = 1 - K.dot(alpha)
-
-            mask = margins > 0
-            alpha[mask] += self.lr * margins[mask]
-
-            alpha = np.clip(alpha, 0, self.C)
-
-            if np.max(np.abs(alpha - alpha_prev)) < self.tolerance:
+            decision = X.dot(self.w) + self.b
+            hinge_losses = np.maximum(0, 1 - y * decision)
+            objective = 0.5 * self.lambda_param * np.dot(self.w, self.w) + np.mean(hinge_losses)
+            
+            if ep % 10 == 0:
+                print(f"Epoch {ep}, Giá trị hàm mục tiêu: {objective:.4f}")
+            
+            if abs(previous_objective - objective) < self.tol:
+                print(f"Dừng sớm tại epoch {ep}, giá trị hàm mục tiêu thay đổi: {abs(previous_objective - objective):.6f}")
                 break
-        self.w = np.dot(X.T, alpha * y_binary)
+            previous_objective = objective
 
-        sv_indices = alpha > 1e-5
-        if np.any(sv_indices):
-            self.b = np.mean(y_binary[sv_indices] - np.dot(X[sv_indices], self.w))
+        self.is_trained = True
+        return self
 
     def predict(self, X):
-        """Predict class labels for samples in X."""
-        if hasattr(X, "toarray"):
-            X = X.toarray()
+        if not self.is_trained:
+            raise Exception("Mô hình chưa được huấn luỵen")
             
-        return np.where(np.dot(X, self.w) + self.b >= 0, 1, 0)
-
-    def get_parameters(self):
-      print(f'w: {self.w}')
-      print(f'b: {self.b}')
-
-    def decision_function(self, X):
-        """Return distance of samples to the decision boundary."""
         if hasattr(X, "toarray"):
-            X = X.toarray()
+            X = csr_matrix(X)
             
-        return np.dot(X, self.w) + self.b
+        decision = X.dot(self.w) + self.b
+        return np.where(decision >= 0, 1, 0)
 
 @st.cache_resource
 def load_model():
