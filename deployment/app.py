@@ -79,7 +79,7 @@ def load_model():
     try:
         with open('linear_svm.pkl', 'rb') as model_file:
             model = pickle.load(model_file)
-        with open('hashing_vectorizer.pkl', 'rb') as vectorizer_file:
+        with open('vectorizer.pkl', 'rb') as vectorizer_file:
             vectorizer = pickle.load(vectorizer_file)
         return model, vectorizer
     except FileNotFoundError:
