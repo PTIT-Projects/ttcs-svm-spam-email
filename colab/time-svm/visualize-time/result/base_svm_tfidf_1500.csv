@@ -1,0 +1,2 @@
+class_name,time,accuracy_score,f1_score,n
+SVC,18.88788318634033,0.96,0.963855421686747,1500

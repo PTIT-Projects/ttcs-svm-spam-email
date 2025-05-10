@@ -1,0 +1,2 @@
+class_name,time,accuracy_score,f1_score,n
+HardMarginSVM_hashing,77.20053386688232,0.92,0.9219512195121952,2000

@@ -1,0 +1,2 @@
+class_name,time,accuracy_score,f1_score,n
+LinearSVM,17.59864592552185,0.9690909090909092,0.9710391822827938,5500

@@ -1,0 +1,2 @@
+class_name,n,time,prep_time,accuracy_score,f1_score
+SVM,5000,8.173143863677979,19.582746982574463,0.959,0.9603864734299516

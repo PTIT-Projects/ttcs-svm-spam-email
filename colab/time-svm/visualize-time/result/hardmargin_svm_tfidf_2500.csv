@@ -1,0 +1,2 @@
+class_name,time,accuracy_score,f1_score,n
+HardMarginSVM_tfidf,1769.5589423179626,0.976,0.9763779527559054,2500
